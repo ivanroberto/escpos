@@ -55,6 +55,10 @@ func New(dst io.Writer) (e *Escpos) {
 	return
 }
 
+func (e *Escpos) Reset(dst io.Writer) {
+	e.dst.Reset(dst)
+}
+
 // Sets the Printerconfig
 func (e *Escpos) SetConfig(conf PrinterConfig) {
 	e.config = conf

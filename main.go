@@ -3,10 +3,11 @@ package escpos
 import (
 	"bufio"
 	"fmt"
-	"golang.org/x/text/encoding/charmap"
 	"image"
 	"io"
 	"math"
+
+	"golang.org/x/text/encoding/charmap"
 )
 
 type Style struct {
@@ -42,21 +43,24 @@ type PrinterConfig struct {
 }
 
 type Escpos struct {
-	dst    *bufio.Writer
+	// dst *bufio.Writer
+	dst    *bufio.ReadWriter
 	Style  Style
 	config PrinterConfig
 }
 
 // New create an Escpos printer
-func New(dst io.Writer) (e *Escpos) {
+func New(dst io.ReadWriter) (e *Escpos) {
 	e = &Escpos{
-		dst: bufio.NewWriter(dst),
+		// dst: bufio.NewWriter(dst),
+		dst: bufio.NewReadWriter(bufio.NewReader(dst), bufio.NewWriter(dst)),
 	}
 	return
 }
 
 func (e *Escpos) Reset(dst io.Writer) {
-	e.dst.Reset(dst)
+	// func (e *Escpos) Reset(dst io.ReadWriter) {
+	e.dst.Writer.Reset(dst)
 }
 
 // Sets the Printerconfig
@@ -81,7 +85,16 @@ func (e *Escpos) PrintAndCut() error {
 // WriteRaw write raw bytes to the printer
 func (e *Escpos) WriteRaw(data []byte) (int, error) {
 	if len(data) > 0 {
+		// return e.dst.Write(data)
 		return e.dst.Write(data)
+	}
+	return 0, nil
+}
+
+// ReadRaw read raw bytes from the printer
+func (e *Escpos) Read(data *[]byte) (int, error) {
+	if len(*data) > 0 {
+		return e.dst.Reader.Read(*data)
 	}
 	return 0, nil
 }
@@ -331,7 +344,7 @@ func (e *Escpos) ITF(code string) (int, error) {
 	return e.WriteRaw(append([]byte{gs, 'k', 70, byte(len(code))}, []byte(code)...))
 }
 
-//Print a CODE93 Barcode. code can contain the characters 0-9, A-Z, space, $, %, +, -, ., /
+// Print a CODE93 Barcode. code can contain the characters 0-9, A-Z, space, $, %, +, -, ., /
 func (e *Escpos) CODE93(code string) (int, error) {
 	if len(code) > 255 {
 		return 0, fmt.Errorf("code should have a length smaller than 256")

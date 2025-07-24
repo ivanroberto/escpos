@@ -330,7 +330,9 @@ func (e *Escpos) CODE39(code string) (int, error) {
 	if len(code) > 255 {
 		return 0, fmt.Errorf("code should have a length smaller than 256")
 	}
-	return e.WriteRaw(append([]byte{gs, 'k', 69, byte(len(code) + 2), 0x7B, 0x42}, []byte(code)...))
+	// return e.WriteRaw(append([]byte{gs, 'k', 69, byte(len(code) + 2), 0x7B, 0x42}, []byte(code)...))
+	return e.WriteRaw(append([]byte{gs, 'k', 69, byte(len(code))}, []byte(code)...))
+
 }
 
 // Prints a ITF Barcode. code can only contain numerical characters and must have an even length
@@ -458,8 +460,9 @@ func (e *Escpos) PrintNVBitImage(p uint8, mode uint8) (int, error) {
 	if mode > 3 {
 		return 0, fmt.Errorf("mode only supports values from 0 to 3")
 	}
-
-	return e.WriteRaw([]byte{fs, 'd', p, mode})
+	//data := []byte{fs, 'd', p, mode}
+	data := []byte{gs, '(', 'L', 0x06, 0x00, 0x30, 0x45, 32, 31+p, 0x01, 0x01}
+	return e.WriteRaw(data)
 }
 
 // Configuration stuff
